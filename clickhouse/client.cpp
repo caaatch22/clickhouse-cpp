@@ -14,6 +14,8 @@
 #include <vector>
 #include <sstream>
 #include <stdexcept>
+#include <string>
+#include <iostream>
 
 #if defined(WITH_OPENSSL)
 #include "base/sslsocket.h"
@@ -167,6 +169,8 @@ private:
 
     /// Reads data packet form input stream.
     bool ReceiveData();
+
+    bool ReceiveDataAsStr();
 
     /// Reads exception packet form input stream.
     bool ReceiveException(bool rethrow = false);
@@ -660,6 +664,19 @@ bool Client::Impl::ReceiveData() {
         }
     }
 
+    // char buf[256] = {0};
+    // WireFormat::ReadBytes(*input_, buf, 32);
+    // std::string s(buf);
+
+    // if (events_) {
+    //     events_->OnData(s);
+    // }
+
+    return true;
+}
+
+bool Client::Impl::ReceiveDataAsStr() {
+
     return true;
 }
 
@@ -998,6 +1015,14 @@ void Client::Select(const std::string& query, SelectCallback cb) {
 }
 
 void Client::Select(const std::string& query, const std::string& query_id, SelectCallback cb) {
+    Execute(Query(query, query_id).OnData(std::move(cb)));
+}
+
+void Client::Select(const std::string& query, SelectCallbackString cb) {
+    Execute(Query(query).OnData(std::move(cb)));
+}
+
+void Client::Select(const std::string& query, const std::string& query_id, SelectCallbackString cb) {
     Execute(Query(query, query_id).OnData(std::move(cb)));
 }
 

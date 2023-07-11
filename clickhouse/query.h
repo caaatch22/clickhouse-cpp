@@ -53,6 +53,9 @@ public:
 
     /// Some data was received.
     virtual void OnData(const Block& block) = 0;
+
+    virtual void OnData(const std::string& str) = 0;
+
     virtual bool OnDataCancelable(const Block& block) = 0;
 
     virtual void OnServerException(const Exception& e) = 0;
@@ -78,6 +81,8 @@ using ExceptionCallback        = std::function<void(const Exception& e)>;
 using ProgressCallback         = std::function<void(const Progress& progress)>;
 using SelectCallback           = std::function<void(const Block& block)>;
 using SelectCancelableCallback = std::function<bool(const Block& block)>;
+using SelectCallbackString     = std::function<void(const std::string& str)>;
+using SelectCancelableCallbackString = std::function<bool(const Block& block)>; 
 using SelectServerLogCallback  = std::function<bool(const Block& block)>;
 using ProfileEventsCallback    = std::function<bool(const Block& block)>;
 using ProfileCallbak           = std::function<void(const Profile& profile)>;
@@ -131,6 +136,12 @@ public:
         return *this;
     }
 
+    /// Set handler for receiving result data in raw string form.
+    inline Query& OnData(SelectCallbackString cb) {
+        select_str_cb_ = std::move(cb);
+        return *this;
+    }
+
     inline Query& OnDataCancelable(SelectCancelableCallback cb) {
         select_cancelable_cb_ = std::move(cb);
         return *this;
@@ -171,6 +182,12 @@ private:
     void OnData(const Block& block) override {
         if (select_cb_) {
             select_cb_(block);
+        }
+    }
+
+    void OnData(const std::string& str) override {
+        if (select_str_cb_) {
+            select_str_cb_(str);
         }
     }
 
@@ -223,6 +240,7 @@ private:
     ProgressCallback progress_cb_;
     SelectCallback select_cb_;
     SelectCancelableCallback select_cancelable_cb_;
+    SelectCallbackString select_str_cb_;
     SelectServerLogCallback select_server_log_cb_;
     ProfileEventsCallback profile_events_callback_cb_;
     ProfileCallbak profile_callback_cb_;

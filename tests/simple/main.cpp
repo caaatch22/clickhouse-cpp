@@ -28,6 +28,7 @@ inline void ArrayExample(Client& client) {
     Block b;
 
     /// Create a table.
+    std::cout << "enter array example test\n";
     client.Execute("CREATE TEMPORARY TABLE IF NOT EXISTS test_array (arr Array(UInt64))");
 
     auto arr = std::make_shared<ColumnArray>(std::make_shared<ColumnUInt64>());
@@ -46,8 +47,14 @@ inline void ArrayExample(Client& client) {
     arr->AppendAsColumn(id);
 
     b.AppendColumn("arr", arr);
-    client.Insert("test_array", b);
+    std::cout << "before actually insert\n";
+    // client.Insert("test_array", b);
+    client.Execute("insert into test_array values ([1, 3, 7, 9])");
+    std::cout << "ArrayExample insert success" << '\n';
 
+    // client.Select("SELECT arr FROM test_array", [](const std::string& str) {
+    //     std::cout << str << '\n';
+    // });
     client.Select("SELECT arr FROM test_array", [](const Block& block)
         {
             for (size_t c = 0; c < block.GetRowCount(); ++c) {
@@ -495,6 +502,7 @@ static void RunTests(Client& client) {
 }
 
 int main() {
+    std::cout << "begin simple-test:\n";
     try {
         const auto localHostEndpoint = ClientOptions()
                 .SetHost(   getEnvOrDefault("CLICKHOUSE_HOST",     "localhost"))
@@ -504,12 +512,13 @@ int main() {
                                  ,{"noalocalhost", 9000}
                                })
                 .SetUser(           getEnvOrDefault("CLICKHOUSE_USER",     "default"))
-                .SetPassword(       getEnvOrDefault("CLICKHOUSE_PASSWORD", ""))
+                .SetPassword(       getEnvOrDefault("CLICKHOUSE_PASSWORD", "Mingjie123."))
                 .SetDefaultDatabase(getEnvOrDefault("CLICKHOUSE_DB",       "default"));
 
         {
             Client client(ClientOptions(localHostEndpoint)
                     .SetPingBeforeQuery(true));
+            std::cout << "Running tests...\n";
             RunTests(client);
             std::cout << "current endpoint : " <<  client.GetCurrentEndpoint().value().host << "\n";
         }
